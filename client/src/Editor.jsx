@@ -7,10 +7,8 @@ function Editor({ documentId }) {
   const socketRef = useRef();
   const [content, setContent] = useState("");
 
-  // Connect socket only once
   useEffect(() => {
     socketRef.current = io(SOCKET_SERVER);
-
     socketRef.current.emit("get-document", documentId);
 
     socketRef.current.once("load-document", (docContent) => {
@@ -20,26 +18,20 @@ function Editor({ documentId }) {
     return () => socketRef.current.disconnect();
   }, [documentId]);
 
-  // Listen for incoming changes
   useEffect(() => {
     if (!socketRef.current) return;
-
     const handleReceive = (newContent) => {
       setContent(newContent);
     };
-
     socketRef.current.on("receive-changes", handleReceive);
-
     return () => {
       socketRef.current.off("receive-changes", handleReceive);
     };
   }, []);
 
-  // Handle typing and emit changes
   const handleChange = (e) => {
     const value = e.target.value;
     setContent(value);
-
     socketRef.current.emit("send-changes", value);
     socketRef.current.emit("save-document", value);
   };
@@ -48,13 +40,7 @@ function Editor({ documentId }) {
     <textarea
       value={content}
       onChange={handleChange}
-      style={{
-        width: "100%",
-        height: "400px",
-        fontSize: "16px",
-        padding: "10px",
-        fontFamily: "monospace"
-      }}
+      className="editor-textarea"
     />
   );
 }
